@@ -74,7 +74,7 @@ export default function CreateUser() {
       <Layout.Body>
         <Card>
           <CardHeader>
-            <CardTitle>Create Data Users</CardTitle>
+            <CardTitle>Create Data Receptionist</CardTitle>
             <CardDescription>Add a new user to the system</CardDescription>
           </CardHeader>
           <CardContent>
@@ -143,10 +143,10 @@ export default function CreateUser() {
 
                 <div className='flex items-center gap-3 '>
                   <Button type='submit' className='bg-slate-600'>
-                    Create User
+                    Create Receptionist
                   </Button>
                   <Button type='button'>
-                    <Link to='/admin'>Kembali</Link>
+                    <Link to='/receptionist'>Kembali</Link>
                   </Button>
                 </div>
               </form>
