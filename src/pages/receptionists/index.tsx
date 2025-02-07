@@ -18,7 +18,7 @@ export default function Tasks() {
   const fetchUsers = async () => {
     setLoading(true)
     try {
-      const response = await axios.get(`${apiUrl}/recepcionists`)
+      const response = await axios.get(`${apiUrl}/receptionists`)
       setUsers(response.data)
     } catch (error: any) {
       console.error('Error fetching users:', error)
