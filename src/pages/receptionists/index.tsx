@@ -18,7 +18,7 @@ export default function Tasks() {
   const fetchUsers = async () => {
     setLoading(true)
     try {
-      const response = await axios.get(`${apiUrl}/admins`)
+      const response = await axios.get(`${apiUrl}/recepcionists`)
       setUsers(response.data)
     } catch (error: any) {
       console.error('Error fetching users:', error)
@@ -60,7 +60,7 @@ export default function Tasks() {
             {/* <Link to='/upload-users'>
               <Button>Upload Data</Button>
             </Link> */}
-            <Link to='/create-receptionists'>
+            <Link to='/create-receptionist'>
               <Button>Create Data</Button>
             </Link>
           </div>
