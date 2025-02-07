@@ -71,7 +71,7 @@ export default function SignIn() {
               <div
                 className={`mb-10 flex items-center justify-center gap-2 align-middle lg:-ml-10`}
               >
-                <img className='rounded-full' src='./logo.png' alt='logo' style={{ width: '55px' }} />
+                <img className='rounded-full' src='https://i.imgur.com/ItJ6Sza.png' alt='logo' style={{ width: '55px' }} />
                 <div
                   className={`visible flex w-auto flex-col justify-end truncate`}
                 >
