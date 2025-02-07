@@ -51,7 +51,7 @@ export default function Sidebar({
             <div className={`flex items-center ${!isCollapsed ? 'gap-2' : ''}`}>
             <img
             className='rounded-full'
-            src='logo.png' alt='logo' style={{ width: '35px' }} />
+            src='./logo.png' alt='logo' style={{ width: '35px' }} />
             <div
               className={`flex flex-col justify-end truncate ${isCollapsed ? 'invisible w-0' : 'visible w-auto'}`}
             >
