@@ -86,6 +86,12 @@ const router = createBrowserRouter([
 
       },
       {
+        path : 'visitor',
+        lazy: async () => ({
+          Component: (await import('@/pages/visitors/index.tsx')).default,
+        }),
+      },
+      {
         path : 'visitor-public',
         lazy: async () => ({
           Component: (await import('@/pages/visitor-public/index.tsx')).default,
