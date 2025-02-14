@@ -3,6 +3,69 @@ import GeneralError from './pages/errors/general-error'
 import NotFoundError from './pages/errors/not-found-error'
 import MaintenanceError from './pages/errors/maintenance-error'
 import UnauthorisedError from './pages/errors/unauthorised-error.tsx'
+import cookie from 'js-cookie'
+import { toast } from 'react-hot-toast'
+import { redirect } from 'react-router-dom'
+
+import { JSX } from 'react/jsx-runtime'
+
+const user = cookie.get('user')
+const app_type = user ? JSON.parse(user).app_type : ''
+
+
+// Helper untuk mendapatkan cookie
+const getCookie = (name: string) => {
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'))
+  return match ? match[2] : null
+}
+
+// Loader untuk autentikasi
+const requireAuth = async () => {
+  const userCookie = getCookie('user')
+
+  console.log(userCookie)
+  if (!userCookie  || userCookie.length === 0) {
+    throw redirect('/sign-in') // Redirect ke halaman sign-in jika tidak ada cookie
+  }
+  return null
+}
+
+const removeAllCookies = () => {
+  document.cookie.split(';').forEach(function (c) {
+    document.cookie = c
+      .replace(/^ +/, '')
+      .replace(/=.*/, '=;expires=' + new Date().toUTCString() + ';path=/')
+  })
+}
+
+requireAuth().catch((error) => {
+  if (error instanceof Error) {
+    toast.error(error.message)
+  }
+})
+
+let currentUrl = window.location.pathname;
+
+
+// Fungsi untuk menjalankan pemeriksaan secara berkala
+const checkAuthPeriodically = () => {
+  setInterval(async () => {
+    try {
+      await requireAuth();
+    } catch (error) {
+      toast.error('Sesi Anda telah berakhir. Silakan masuk kembali.');
+      window.location.reload();
+    }
+  }, 1000); // Setiap 1 detik
+};
+
+
+if (currentUrl !== '/sign-in') { 
+  checkAuthPeriodically();
+}
+
+
+
 
 const router = createBrowserRouter([
   // Auth routes
@@ -20,6 +83,7 @@ const router = createBrowserRouter([
       const AppShell = await import('./components/app-shell')
       return { Component: AppShell.default }
     },
+    loader: requireAuth,
     errorElement: <GeneralError />,
     children: [
       {
@@ -29,53 +93,68 @@ const router = createBrowserRouter([
         }),
       },
       {
+        path: 'dashboard',
+        lazy: async () => ({
+          Component: (await import('./pages/dashboard')).default,
+        }),
+        loader: requireAuth,
+        
+      },
+      {
         path: 'admin',
         lazy: async () => ({
           Component: (await import('@/pages/admins/index.tsx')).default,
         }),
+        loader: requireAuth,
       },
       {
         path : 'receptionist',
         lazy: async () => ({
           Component: (await import('@/pages/receptionists/index.tsx')).default,
         }),
+        loader: requireAuth,
       },
       {
         path : 'employee',
         lazy: async () => ({
           Component: (await import('@/pages/employees/index.tsx')).default,
         }),
+        loader: requireAuth,
       },
       {
         path : 'visitor',
         lazy: async () => ({
           Component: (await import('@/pages/visitors/index.tsx')).default,
         }),
+        loader: requireAuth,
       },
       {
         path : 'division',
         lazy: async () => ({
           Component: (await import('@/pages/division/index.tsx')).default,
         }),
+        loader: requireAuth,
       },
 {
         path : 'create-admin',
         lazy: async () => ({
           Component: (await import('@/pages/create-admin/index.tsx')).default,
         }),
+        loader: requireAuth,
       },
       {
         path : 'create-division',
         lazy: async () => ({
           Component: (await import('@/pages/create-division/index.tsx')).default,
         }),
-
+        loader: requireAuth,
       },
       {
         path : 'create-employees',
         lazy: async () => ({
           Component: (await import('@/pages/create-employee/index.tsx')).default,
         }),
+        loader: requireAuth,
 
       },
       {
@@ -83,7 +162,7 @@ const router = createBrowserRouter([
         lazy: async () => ({
           Component: (await import('@/pages/create-receptionist/index.tsx')).default,
         }),
-
+        loader: requireAuth
       },
       {
         path : 'visitor',
@@ -96,6 +175,7 @@ const router = createBrowserRouter([
         lazy: async () => ({
           Component: (await import('@/pages/visitor-public/index.tsx')).default,
         }),
+        loader: requireAuth,
 
       },
 
