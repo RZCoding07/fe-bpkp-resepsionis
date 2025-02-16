@@ -56,12 +56,7 @@ export default function Tasks() {
             </p>
           </div>
           <div className='ml-auto flex space-x-2'>
-            {/* <Link to='/upload-users'>
-              <Button>Upload Data</Button>
-            </Link> */}
-            <Link to='/visitor-public'>
-              <Button>Create Data</Button>
-            </Link>
+   
           </div>
         </div>
 

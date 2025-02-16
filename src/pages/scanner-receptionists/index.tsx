@@ -1,7 +1,5 @@
-"use client"
-
 import type React from "react"
-
+import axios from "axios"
 import { Layout } from "@/components/custom/layout"
 import { Search } from "@/components/search"
 import ThemeSwitch from "@/components/theme-switch"
@@ -10,8 +8,13 @@ import { useEffect, useState } from "react"
 import { Html5QrcodeScanner } from "html5-qrcode"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/custom/button"
+import cookie from "js-cookie"
+import { toast } from "react-hot-toast"
 
 export default function QrScanner() {
+  const user = cookie.get("user")
+  const idUser = user ? JSON.parse(user).id : null
+
   const [scannedText, setScannedText] = useState("")
   const [isScanning, setIsScanning] = useState(true)
   const [parsedData, setParsedData] = useState<{ tag: string; value: string }[]>([])
@@ -39,7 +42,7 @@ export default function QrScanner() {
     }
 
     const onError = (errorMessage: any) => {
-      console.error(`QR Code error: ${errorMessage}`)
+      // console.error(`QR Code error: ${errorMessage}`)
     }
 
     scanner.render(onSuccess, onError)
@@ -72,9 +75,14 @@ export default function QrScanner() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle the submission of scanned text here
-    console.log("Submitted:", scannedText)
-    // You can add your logic to process the submitted data
+    console.log("Submit data:", parsedData)
+    const apiUrl = import.meta.env.VITE_API_URL as string
+    axios.post(`${apiUrl}/approval-visitors-checkin`, {
+      petugas_id: idUser,
+      visitor_id: scannedText
+    })
+    toast.success("Visitor checked in successfully")
+    handleRescan()
   }
 
   return (
@@ -102,7 +110,7 @@ export default function QrScanner() {
                   placeholder="Scanned QR Code value"
                 />
                 <div className="flex space-x-2">
-                  <Button type="submit">Submit</Button>
+                  <Button type="submit">Check-In</Button>
                   <Button type="button" variant="outline" onClick={handleRescan}>
                     Scan Again
                   </Button>
