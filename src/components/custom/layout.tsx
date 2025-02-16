@@ -37,7 +37,8 @@ const Layout = ({ className, fixed = false, ...props }: LayoutProps) => {
           className
         )}
         {...props}
-        style={{height: '100%'}}
+        style={{height: '100%',
+        }}
       />
     </LayoutContext.Provider>
   )
@@ -69,6 +70,12 @@ const Header = React.forwardRef<HTMLDivElement, HeaderProps>(
           sticky && 'sticky top-0',
           className
         )}
+        style={
+          {
+            position: 'relative',
+            // zIndex: 99999,
+          }
+        }
         {...props}
       />
     )
@@ -87,16 +94,28 @@ const Body = React.forwardRef<
   }
 
   return (
-    <div
-      ref={ref}
-      data-layout='body'
-      className={cn(
-        'px-4 py-6 md:overflow-hidden md:px-8 h-full',
-        contextVal && contextVal.fixed && 'flex-1',
-        className
-      )}
-      {...props}
-    />
+    <div className="relative min-h-screen sm:min-h-[120vh] md:min-h-[140vh] lg:min-h-[160vh] xl:min-h-[180vh]">
+      <div
+        className={cn(
+          'absolute opacity-50 inset-0 bg-gray-50 bg-[url("/background.jpeg")] bg-cover bg-center  dark:bg-gradient dark:from-slate-950 dark:to-slate-900 ',
+          contextVal && contextVal.fixed && 'fixed'
+        )}
+        style={{
+          filter: 'blur(8px)',
+        }}
+      />
+      
+      <div
+        ref={ref}
+        data-layout='body'
+        className={cn(
+          'relative z-10 min-h-screen p-6 px-4 py-6 md:overflow-hidden md:px-8 h-full',
+          contextVal && contextVal.fixed && 'flex-1',
+          className
+        )}
+        {...props}
+      />
+    </div>
   )
 })
 Body.displayName = 'Body'

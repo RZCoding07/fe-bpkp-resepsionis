@@ -160,7 +160,7 @@ export default function QrScanner() {
         </div>
       </Layout.Header>
 
-      <Layout.Body className="p-4 dark:bg-slate-900">
+      <Layout.Body>
         <div className="app-container">
           {isScanning ? (
             <div id="reader" className="qr-reader"></div>
