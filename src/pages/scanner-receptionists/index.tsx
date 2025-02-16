@@ -29,6 +29,8 @@ export default function QrScanner() {
   const [isScanning, setIsScanning] = useState(true)
   const [employees, setEmployees] = useState([])
 
+  const [action, setAction] = useState("")
+
   const form = useForm<FormData>({
     defaultValues: {
       scannedText: "",
@@ -40,10 +42,11 @@ export default function QrScanner() {
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL
+        const apiUrl = import.meta.env.VITE_API_URL
         const response = await axios.get(`${apiUrl}/vw-employees`)
         setEmployees(response.data)
       } catch (error) {
+        console.error("Error fetching employees:", error)
         toast.error("Failed to load employees.")
       }
     }
@@ -67,6 +70,20 @@ export default function QrScanner() {
     const onSuccess = (decodedText: string) => {
       console.log(`QR Code scanned: ${decodedText}`)
       form.setValue("scannedText", decodedText)
+
+      const [id, action] = decodedText.split("_")
+
+      if (action !== "checkin" && action !== "checkout") {
+        toast.error("Invalid QR code format")
+        return
+      }
+
+      if (action === "checkin") {
+        setAction("checkin")
+      } else if (action === "checkout") {
+        setAction("checkout")
+      }
+
       setIsScanning(false)
       scanner.clear().catch((clearError) => console.error(`Error clearing scanner: ${clearError}`))
     }
@@ -90,27 +107,40 @@ export default function QrScanner() {
   const onSubmit = async (data: FormData) => {
     try {
       const apiUrl = import.meta.env.VITE_API_URL
-      const [action, id] = data.scannedText.split("_")
+      const [id, action] = data.scannedText.split("_")
+
+      if (action !== "checkin" && action !== "checkout") {
+        throw new Error("Invalid QR code format")
+      }
+
+      let bodyPass;
 
       let endpoint = ""
-      if (action === "checkIn") {
-        endpoint = `${apiUrl}/visitors/${id}/check-in`
+      if (action === "checkin") {
+        endpoint = `${apiUrl}/visitors-checkin/${id}`
+        bodyPass = {
+          petugas_id: idUser,
+          visitor_id: id,
+          employee_id: data.employeeId,
+          status: data.status,
+        }
       } else if (action === "checkout") {
-        endpoint = `${apiUrl}/approvals/${id}/check-out`
+        endpoint = `${apiUrl}/visitors-checkout/${id}`
+        bodyPass = {
+          checkIn_id: id,
+          petugas_id: idUser,
+          status: data.status,
+        }
       } else {
         throw new Error("Invalid QR code format")
       }
 
       const response = await axios.post(endpoint, {
-        employeeId: data.employeeId,
-        status: data.status,
-        userId: idUser,
+        ...bodyPass
       })
 
-      if (response.status === 200) {
+      if (response.status === 201) {
         toast.success("Operation successful")
-        form.reset()
-        setIsScanning(true)
       } else {
         toast.error("Operation failed")
       }
@@ -130,8 +160,8 @@ export default function QrScanner() {
         </div>
       </Layout.Header>
 
-      <Layout.Body>
-        <div className="app-container max-h-60">
+      <Layout.Body className="p-4 dark:bg-slate-900">
+        <div className="app-container">
           {isScanning ? (
             <div id="reader" className="qr-reader"></div>
           ) : (
@@ -152,56 +182,64 @@ export default function QrScanner() {
                       </FormItem>
                     )}
                   />
+                  {action === "checkin" && (
 
-                  <FormField
-                    control={form.control}
-                    name="employeeId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Employee</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select an employee" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {employees.map((employee: any) => (
-                              <SelectItem key={employee.id} value={employee.id}>
-                                {employee.employee_name} - {employee.division_name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                    <>
+                      <FormField
+                        control={form.control}
+                        name="employeeId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Yang Ingin Dituju</FormLabel>
+                            <Select value={field.value} onValueChange={(value) => {
+                              field.onChange(value);
+                              console.log("Selected Employee ID:", value);
+                            }}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select an employee" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {employees.map((employee: any) => (
+                                  <SelectItem key={employee.employee_id} value={employee.employee_id}>
+                                    {employee.employee_name} - {employee.division_name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                  <FormField
-                    control={form.control}
-                    name="status"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Status</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select status" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="approve">Approve</SelectItem>
-                            <SelectItem value="disapprove">Disapprove</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                      <FormField
+                        control={form.control}
+                        name="status"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Status</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select status" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="approve">Approve</SelectItem>
+                                <SelectItem value="disapprove">Disapprove</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </>
+
+                  )}
 
                   <div className="flex space-x-2">
-                    <Button type="submit">Submit</Button>
+                    <Button type="submit">{action === "checkin" ? "Check In" : "Check Out"}</Button>
                     <Button type="button" variant="outline" onClick={handleRescan}>
                       Scan Again
                     </Button>
