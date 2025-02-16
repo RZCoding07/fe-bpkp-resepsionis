@@ -41,6 +41,8 @@ const removeAllCookies = () => {
   })
 
   cookie.remove('user')
+  cookie.remove('isAuthenticated')
+  cookie.remove('token')
 }
 
 requireAuth().catch((error) => {
@@ -204,8 +206,8 @@ const router = createBrowserRouter([
     }),
     loader: async () => {
       toast.success('Logout successful');
-      removeAllCookies();
-      return redirect('/sign-in');
+        removeAllCookies();
+      window.location.href = '/sign-in';
     },
   },
 
