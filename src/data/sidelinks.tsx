@@ -13,7 +13,7 @@ export interface SideLink extends NavLink {
 
 const user = cookie.get('user')
 const role = user ? JSON.parse(user).role : ''
-console.log(user)
+console.log(role)
 
 let sidelinksMaster: SideLink[];
 
