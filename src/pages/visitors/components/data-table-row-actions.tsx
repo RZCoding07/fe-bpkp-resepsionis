@@ -19,18 +19,18 @@ interface DataTableRowActionsProps {
 }
 
 export function DataTableRowActions({ row }: DataTableRowActionsProps) {
-  const apiUrl = import.meta.env.VITE_API_MASTER;
+  const apiUrl = import.meta.env.VITE_API_URL;
 
   const handleDelete = useCallback(async (id: string) => {
     try {
-      const response = await fetch(`${apiUrl}/users/${id}`, {
+      const response = await fetch(`${apiUrl}/visitors/${id}`, {
         method: 'DELETE',
       })
       if (response.ok) {
-        toast.success('User deleted successfully')
+        toast.success('Deleted successfully')
         location.reload()
       } else {
-        console.error('Failed to delete user')
+        console.error('Failed to delete visitor')
         toast.error('Failed to delete user')
       }
     } catch (error) {

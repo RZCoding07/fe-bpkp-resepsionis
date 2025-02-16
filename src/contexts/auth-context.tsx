@@ -3,6 +3,7 @@ import { createContext, useContext, useState, useCallback, useEffect } from "rea
 import type { User } from "../types/user"
 import { authApi } from "@/services/api-auth"
 import { getStoredToken, setStoredToken, removeStoredToken } from "@/utils/auth"
+import cookie from "js-cookie"
 
 interface AuthContextType {
   user: User | null
@@ -20,6 +21,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const response = await authApi.login(email, password)
       const { token, user: userData } = response.data
+      console.log("Login response:", response.data)
+      console.log("Token:", token)
+      console.log("User data:", userData)
+      cookie.set("user", JSON.stringify(userData))
+      cookie.set("isAuthenticated", "true")
       setUser(userData)
       setStoredToken(token)
     } catch (error) {

@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useRef } from "react"
 import axios from "axios"
 import { Layout } from "@/components/custom/layout"
@@ -21,6 +19,8 @@ type FormData = {
   email: string
   agency: string
   departement: string
+  visit_time_from: string
+  visit_time_to: string
 }
 
 export default function VisitorForm() {
@@ -32,6 +32,8 @@ export default function VisitorForm() {
     email: "",
     agency: "",
     departement: "",
+    visit_time_from: "",
+    visit_time_to: "",
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const sigCanvas = useRef<ReactSignatureCanvas>(null)
@@ -50,8 +52,9 @@ export default function VisitorForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
+    const loader = toast.loading("Submitting visitor information...", { duration: 300000 })
     try {
-      const apiUrl = import.meta.env.VITE_API_URL
+      const apiUrl = import.meta.env.VITE_API_URL as string
       if (!apiUrl) {
         throw new Error("API URL is not defined")
       }
@@ -59,8 +62,15 @@ export default function VisitorForm() {
       Object.entries(formData).forEach(([key, value]) => {
         visitorData.append(key, value)
       })
-      visitorData.append("checkIn", new Date().toISOString().split("T")[1].split(".")[0])
-      visitorData.append("visit_date", new Date().toISOString().split("T")[0])
+
+      // make sure asia jakarta timezone is set
+      const visitDate = new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" }).split(", ")[0]
+
+      visitorData.append("visit_date", visitDate)
+      visitorData.append("visit_time_from", formData.visit_time_from)
+      visitorData.append("visit_time_to", formData.visit_time_to)
+
+
       if (sigCanvas.current) {
         const signatureBlob = await new Promise<Blob>((resolve) => {
           sigCanvas.current!.getTrimmedCanvas().toBlob((blob) => {
@@ -72,8 +82,8 @@ export default function VisitorForm() {
       await axios.post(`${apiUrl}/visitors`, visitorData, {
         headers: { "Content-Type": "multipart/form-data" },
       })
-      toast.success("Visitor information submitted successfully")
-      setFormData({ fullname: "", phone: "", address: "", purpose: "", email: "", agency: "", departement: "" })
+      toast.success("Visitor information submitted successfully", { id: loader })
+      setFormData({ fullname: "", phone: "", address: "", purpose: "", email: "", agency: "", departement: "", visit_time_from: "", visit_time_to: "" })
       clearSignature()
     } catch (error) {
       console.error("Error submitting visitor information:", error)
@@ -84,54 +94,60 @@ export default function VisitorForm() {
   }
 
   return (
-    <Layout>
-      <Layout.Header>
-        <div className="ml-auto flex items-center space-x-4">
-          <Search />
-          <ThemeSwitch />
-          <UserNav />
-        </div>
-      </Layout.Header>
-
-      <Layout.Body>
-        <div className="max-w-4xl bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-          <h2 className="text-2xl font-bold mb-4">Visitor Registration Form</h2>
-          <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
-            {[
-              { label: "Full Name", name: "fullname", type: "text" },
-              { label: "Phone Number", name: "phone", type: "tel" },
-              { label: "Email", name: "email", type: "email" },
-              { label: "Agency", name: "agency", type: "text" },
-              { label: "Department", name: "departement", type: "text" },
-            ].map(({ label, name, type }) => (
-              <div key={name}>
-                <Label htmlFor={name}>{label}</Label>
-                <Input id={name} name={name} type={type} value={formData[name as keyof FormData]} onChange={handleInputChange} placeholder={`Enter your ${label.toLowerCase()}`} required />
-              </div>
-            ))}
-
-            <div className="col-span-2">
-              <Label htmlFor="address">Address</Label>
-              <Textarea id="address" name="address" value={formData.address} onChange={handleInputChange} placeholder="Enter your address" required />
+    <div className=" justify-center align-middle items-center flex flex-col">
+      <div className="max-w-4xl bg-white dark:bg-gradient-to-b dark:from-slate-900 dark:to-slate-900 p-8 rounded-lg shadow-md">
+        <h2 className="text-2xl font-bold mb-4">Visitor Registration Form</h2>
+        <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
+          {[
+            { label: "Full Name", name: "fullname", type: "text" },
+            { label: "Phone Number", name: "phone", type: "tel" },
+            { label: "Email", name: "email", type: "email" },
+            { label: "Agency", name: "agency", type: "text" },
+            { label: "Department", name: "departement", type: "text" },
+          ].map(({ label, name, type }) => (
+            <div key={name}>
+              <Label htmlFor={name}>{label}</Label>
+              <Input id={name} name={name} type={type} value={formData[name as keyof FormData]} onChange={handleInputChange} placeholder={`Enter your ${label.toLowerCase()}`} required />
             </div>
+          ))}
 
-            <div className="col-span-2">
-              <Label htmlFor="purpose">Purpose of Visit</Label>
-              <Textarea id="purpose" name="purpose" value={formData.purpose} onChange={handleInputChange} placeholder="Enter the purpose of your visit" required />
-            </div>
+          <div className="col-span-2">
+            <Label htmlFor="address">Address</Label>
+            <Textarea id="address" name="address" value={formData.address} onChange={handleInputChange} placeholder="Enter your address" required />
+          </div>
+          <div className="col-span-2">
+            <Label htmlFor="visit_date">Visit Date</Label>
+            <Input id="visit_date" name="visit_date" type="date" value={new Date().toISOString().split("T")[0]} />
+          </div>
 
-            <div className="col-span-2">
-              <Label>Signature</Label>
-              <ReactSignatureCanvas ref={sigCanvas} canvasProps={{ className: "border border-gray-300 rounded w-full h-40" }} />
-              <Button type="button" onClick={clearSignature} variant="outline" className="mt-2">Clear Signature</Button>
-            </div>
+          {/*  visit date  now date readonly */}
 
-            <div className="col-span-2">
-              <Button type="submit" className="w-full" disabled={isSubmitting}>{isSubmitting ? "Submitting..." : "Submit"}</Button>
-            </div>
-          </form>
-        </div>
-      </Layout.Body>
-    </Layout>
+          <div>
+            <Label htmlFor="visit_time_from">Visit Time From</Label>
+            <Input id="visit_time_from" name="visit_time_from" type="time" value={formData.visit_time_from} onChange={handleInputChange} required />
+          </div>
+
+          <div>
+            <Label htmlFor="visit_time_to">Visit Time To</Label>
+            <Input id="visit_time_to" name="visit_time_to" type="time" value={formData.visit_time_to} onChange={handleInputChange} required />
+          </div>
+
+          <div className="col-span-2">
+            <Label htmlFor="purpose">Purpose of Visit</Label>
+            <Textarea id="purpose" name="purpose" value={formData.purpose} onChange={handleInputChange} placeholder="Enter the purpose of your visit" required />
+          </div>
+
+          <div className="col-span-2">
+            <Label>Signature</Label>
+            <ReactSignatureCanvas ref={sigCanvas} canvasProps={{ className: "border border-gray-300 rounded w-full h-40" }} />
+            <Button type="button" onClick={clearSignature} variant="outline" className="mt-2">Clear Signature</Button>
+          </div>
+
+          <div className="col-span-2">
+            <Button type="submit" className="w-full" disabled={isSubmitting}>{isSubmitting ? "Submitting..." : "Submit"}</Button>
+          </div>
+        </form>
+      </div>
+    </div>
   )
 }

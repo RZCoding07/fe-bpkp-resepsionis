@@ -7,10 +7,7 @@ import cookie from 'js-cookie'
 import { toast } from 'react-hot-toast'
 import { redirect } from 'react-router-dom'
 
-import { JSX } from 'react/jsx-runtime'
-
 const user = cookie.get('user')
-const app_type = user ? JSON.parse(user).app_type : ''
 
 
 // Helper untuk mendapatkan cookie
@@ -19,12 +16,18 @@ const getCookie = (name: string) => {
   return match ? match[2] : null
 }
 
+let currentUrl = window.location.pathname;
+
+
 // Loader untuk autentikasi
 const requireAuth = async () => {
   const userCookie = getCookie('user')
+  if (currentUrl === '/visitor-public') {
+    return null
+  }
 
   console.log(userCookie)
-  if (!userCookie  || userCookie.length === 0) {
+  if (!userCookie || userCookie.length === 0) {
     throw redirect('/sign-in') // Redirect ke halaman sign-in jika tidak ada cookie
   }
   return null
@@ -44,7 +47,6 @@ requireAuth().catch((error) => {
   }
 })
 
-let currentUrl = window.location.pathname;
 
 
 // Fungsi untuk menjalankan pemeriksaan secara berkala
@@ -60,7 +62,7 @@ const checkAuthPeriodically = () => {
 };
 
 
-if (currentUrl !== '/sign-in') { 
+if (currentUrl !== '/sign-in') {
   checkAuthPeriodically();
 }
 
@@ -91,6 +93,7 @@ const router = createBrowserRouter([
         lazy: async () => ({
           Component: (await import('./pages/dashboard')).default,
         }),
+        loader: requireAuth,
       },
       {
         path: 'dashboard',
@@ -98,7 +101,6 @@ const router = createBrowserRouter([
           Component: (await import('./pages/dashboard')).default,
         }),
         loader: requireAuth,
-        
       },
       {
         path: 'admin',
@@ -108,80 +110,101 @@ const router = createBrowserRouter([
         loader: requireAuth,
       },
       {
-        path : 'receptionist',
+        path: 'receptionist',
         lazy: async () => ({
           Component: (await import('@/pages/receptionists/index.tsx')).default,
         }),
         loader: requireAuth,
       },
       {
-        path : 'employee',
+        path: 'employee',
         lazy: async () => ({
           Component: (await import('@/pages/employees/index.tsx')).default,
+        }),
+
+      },
+      {
+        path: 'scan-qr',
+        lazy: async () => ({
+          Component: (await import('@/pages/scanner-receptionists/index.tsx')).default
         }),
         loader: requireAuth,
       },
       {
-        path : 'visitor',
+        path: 'visitor',
         lazy: async () => ({
           Component: (await import('@/pages/visitors/index.tsx')).default,
         }),
         loader: requireAuth,
       },
       {
-        path : 'division',
+        path: 'division',
         lazy: async () => ({
           Component: (await import('@/pages/division/index.tsx')).default,
         }),
         loader: requireAuth,
       },
-{
-        path : 'create-admin',
+      {
+        path: 'create-admin',
         lazy: async () => ({
           Component: (await import('@/pages/create-admin/index.tsx')).default,
         }),
         loader: requireAuth,
       },
       {
-        path : 'create-division',
+        path: 'create-division',
         lazy: async () => ({
           Component: (await import('@/pages/create-division/index.tsx')).default,
         }),
         loader: requireAuth,
       },
       {
-        path : 'create-employees',
+        path: 'create-employees',
         lazy: async () => ({
           Component: (await import('@/pages/create-employee/index.tsx')).default,
         }),
-        loader: requireAuth,
+
 
       },
       {
-        path : 'create-receptionist',
+        path: 'create-receptionist',
         lazy: async () => ({
           Component: (await import('@/pages/create-receptionist/index.tsx')).default,
         }),
         loader: requireAuth
       },
       {
-        path : 'visitor',
+        path: 'visitor',
         lazy: async () => ({
           Component: (await import('@/pages/visitors/index.tsx')).default,
         }),
-      },
-      {
-        path : 'visitor-public',
-        lazy: async () => ({
-          Component: (await import('@/pages/visitor-public/index.tsx')).default,
-        }),
         loader: requireAuth,
-
       },
 
 
-      
+
+
     ],
+  },
+  {
+    path: 'visitor-public',
+    lazy: async () => ({
+      Component: (await import('@/pages/visitor-public/index.tsx')).default,
+    }),
+
+
+  },
+
+  {
+    path: '/logout',
+    lazy: async () => ({
+      Component: (await import('./pages/auth/sign-in')).default,
+    }),
+    loader: async () => {
+      toast.success('Logout successful');
+      removeAllCookies();
+      return redirect('/sign-in');
+    },
   },
 
   // Error routes

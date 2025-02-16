@@ -3,7 +3,7 @@ import { getAuthorizationHeader } from "@/utils/auth" // Import the getAuthoriza
 import type { User } from "@/types/user" // Import the User type
 
 const api = axios.create({
-  baseURL: "https://your-api-url.com", // Replace with your API URL
+  baseURL: import.meta.env.VITE_API_URL as string,
 })
 
 api.interceptors.request.use((config) => {
@@ -17,7 +17,7 @@ api.interceptors.request.use((config) => {
 })
 
 export const authApi = {
-  login: (email: string, password: string) => api.post("/login", { email, password }),
+  login: (identifier: string, password: string) => api.post("/login", { identifier, password }),
 
   getCurrentUser: () => api.get("/user"),
 

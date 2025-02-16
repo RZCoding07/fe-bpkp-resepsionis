@@ -19,7 +19,6 @@ export default function UploadUser() {
   const [isLoadingUpload, setIsLoadingUpload] = useState(false)
   const [isUploadingDone, setIsUploadingDone] = useState(false)
   const [progressValue, setProgressValue] = useState(0)
-  // Fullname	Regional	Username	Password	Kebun	PKS	Afd	Account Type	App Type
 
   interface UserData {
     fullname: string

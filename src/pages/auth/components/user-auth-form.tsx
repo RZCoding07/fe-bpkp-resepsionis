@@ -10,11 +10,14 @@ import { Button } from "@/components/custom/button"
 import { PasswordInput } from "@/components/custom/password-input"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/contexts/auth-context"
+import { toast } from "react-hot-toast"
 
 interface UserAuthFormProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 const formSchema = z.object({
-  email: z.string().min(1, { message: "Please enter your email" }).email({ message: "Invalid email address" }),
+  identifier: z.string().min(1, {
+    message: "Please enter your email or username",
+  }),
   password: z
     .string()
     .min(1, {
@@ -33,7 +36,7 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: "",
+      identifier: "",
       password: "",
     },
   })
@@ -42,7 +45,8 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
     async (data: z.infer<typeof formSchema>) => {
       setIsLoading(true)
       try {
-        await login(data.email, data.password)
+        await login(data.identifier, data.password)
+        toast.success("Login successful")
         navigate("/dashboard")
       } catch (error) {
         console.error("Login error:", error)
@@ -61,12 +65,12 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
           <div className="grid gap-2">
             <FormField
               control={form.control}
-              name="email"
+              name="identifier"
               render={({ field }) => (
                 <FormItem className="space-y-1">
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>Email / Username</FormLabel>
                   <FormControl>
-                    <Input placeholder="name@example.com" {...field} />
+                    <Input placeholder="email@example.com / 250******* " {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
