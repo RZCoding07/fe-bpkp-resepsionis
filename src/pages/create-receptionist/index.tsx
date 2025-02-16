@@ -41,7 +41,7 @@ export default function CreateUser() {
   const onSubmit = async (data: any) => {
     const apiUrl = import.meta.env.VITE_API_URL
     try {
-      const response = await fetch(`${apiUrl}/receptiopnists`, {
+      const response = await fetch(`${apiUrl}/receptionists`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -52,7 +52,7 @@ export default function CreateUser() {
       if (response.ok) {
         toast.success('User created successfully!')
         form.reset()
-        navigate('/admin')
+        navigate('/receptionist')
       } else {
         toast.error('Failed to create user.')
       }
@@ -138,6 +138,8 @@ export default function CreateUser() {
                     </FormItem>
                   )}
                 />
+
+                
 
 
 

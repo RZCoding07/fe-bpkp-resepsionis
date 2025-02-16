@@ -1,23 +1,54 @@
-import type React from "react"
+"use client"
+
+import { useEffect, useState } from "react"
 import axios from "axios"
+import { Html5QrcodeScanner } from "html5-qrcode"
+import { useForm } from "react-hook-form"
+import { toast } from "react-hot-toast"
+import cookie from "js-cookie"
+
 import { Layout } from "@/components/custom/layout"
 import { Search } from "@/components/search"
 import ThemeSwitch from "@/components/theme-switch"
 import { UserNav } from "@/components/user-nav"
-import { useEffect, useState } from "react"
-import { Html5QrcodeScanner } from "html5-qrcode"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/custom/button"
-import cookie from "js-cookie"
-import { toast } from "react-hot-toast"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+
+type FormData = {
+  scannedText: string
+  employeeId: string
+  status: "approve" | "disapprove"
+}
 
 export default function QrScanner() {
   const user = cookie.get("user")
   const idUser = user ? JSON.parse(user).id : null
 
-  const [scannedText, setScannedText] = useState("")
   const [isScanning, setIsScanning] = useState(true)
-  const [parsedData, setParsedData] = useState<{ tag: string; value: string }[]>([])
+  const [employees, setEmployees] = useState([])
+
+  const form = useForm<FormData>({
+    defaultValues: {
+      scannedText: "",
+      employeeId: "",
+      status: "approve",
+    },
+  })
+
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL
+        const response = await axios.get(`${apiUrl}/vw-employees`)
+        setEmployees(response.data)
+      } catch (error) {
+        toast.error("Failed to load employees.")
+      }
+    }
+    fetchEmployees()
+  }, [])
 
   useEffect(() => {
     if (!isScanning) return
@@ -33,15 +64,14 @@ export default function QrScanner() {
     }
     const scanner = new Html5QrcodeScanner("reader", scannerConfig, false)
 
-    const onSuccess = (decodedText: any) => {
+    const onSuccess = (decodedText: string) => {
       console.log(`QR Code scanned: ${decodedText}`)
-      setScannedText(decodedText)
-      setParsedData(parseTLV(decodedText))
+      form.setValue("scannedText", decodedText)
       setIsScanning(false)
       scanner.clear().catch((clearError) => console.error(`Error clearing scanner: ${clearError}`))
     }
 
-    const onError = (errorMessage: any) => {
+    const onError = (errorMessage: string) => {
       // console.error(`QR Code error: ${errorMessage}`)
     }
 
@@ -50,44 +80,48 @@ export default function QrScanner() {
     return () => {
       scanner.clear().catch((clearError) => console.error(`Error clearing scanner: ${clearError}`))
     }
-  }, [isScanning])
+  }, [isScanning, form])
 
   const handleRescan = () => {
-    setScannedText("")
-    setParsedData([])
+    form.reset()
     setIsScanning(true)
   }
 
-  const parseTLV = (payload: any) => {
-    const data = []
-    let i = 0
+  const onSubmit = async (data: FormData) => {
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL
+      const [action, id] = data.scannedText.split("_")
 
-    while (i < payload.length) {
-      const tag = payload.substring(i, i + 2)
-      const length = Number.parseInt(payload.substring(i + 2, i + 4), 10)
-      const value = payload.substring(i + 4, i + 4 + length)
-      data.push({ tag, value })
-      i += 4 + length
+      let endpoint = ""
+      if (action === "checkIn") {
+        endpoint = `${apiUrl}/visitors/${id}/check-in`
+      } else if (action === "checkout") {
+        endpoint = `${apiUrl}/approvals/${id}/check-out`
+      } else {
+        throw new Error("Invalid QR code format")
+      }
+
+      const response = await axios.post(endpoint, {
+        employeeId: data.employeeId,
+        status: data.status,
+        userId: idUser,
+      })
+
+      if (response.status === 200) {
+        toast.success("Operation successful")
+        form.reset()
+        setIsScanning(true)
+      } else {
+        toast.error("Operation failed")
+      }
+    } catch (error) {
+      toast.error("An error occurred. Please try again.")
+      console.error(error)
     }
-
-    return data
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    console.log("Submit data:", parsedData)
-    const apiUrl = import.meta.env.VITE_API_URL as string
-    axios.post(`${apiUrl}/approval-visitors-checkin`, {
-      petugas_id: idUser,
-      visitor_id: scannedText
-    })
-    toast.success("Visitor checked in successfully")
-    handleRescan()
   }
 
   return (
     <Layout>
-      {/* ===== Top Heading ===== */}
       <Layout.Header sticky>
         <Search />
         <div className="ml-auto flex items-center space-x-4">
@@ -103,19 +137,77 @@ export default function QrScanner() {
           ) : (
             <div className="scanner-result space-y-4">
               <h2 className="text-xl font-semibold">QR Code Value:</h2>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <Input
-                  value={scannedText}
-                  onChange={(e) => setScannedText(e.target.value)}
-                  placeholder="Scanned QR Code value"
-                />
-                <div className="flex space-x-2">
-                  <Button type="submit">Check-In</Button>
-                  <Button type="button" variant="outline" onClick={handleRescan}>
-                    Scan Again
-                  </Button>
-                </div>
-              </form>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="scannedText"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Scanned QR Code</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Scanned QR Code value" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="employeeId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Employee</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select an employee" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {employees.map((employee: any) => (
+                              <SelectItem key={employee.id} value={employee.id}>
+                                {employee.employee_name} - {employee.division_name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Status</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select status" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="approve">Approve</SelectItem>
+                            <SelectItem value="disapprove">Disapprove</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="flex space-x-2">
+                    <Button type="submit">Submit</Button>
+                    <Button type="button" variant="outline" onClick={handleRescan}>
+                      Scan Again
+                    </Button>
+                  </div>
+                </form>
+              </Form>
             </div>
           )}
         </div>

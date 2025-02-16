@@ -96,14 +96,14 @@ export default function VisitorForm() {
   return (
     <div className=" justify-center align-middle items-center flex flex-col">
       <div className="max-w-4xl bg-white dark:bg-gradient-to-b dark:from-slate-900 dark:to-slate-900 p-8 rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold mb-4">Visitor Registration Form</h2>
+        <h2 className="text-2xl font-bold mb-4">Formulir Pendaftaran Pengunjung</h2>
         <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
           {[
-            { label: "Full Name", name: "fullname", type: "text" },
-            { label: "Phone Number", name: "phone", type: "tel" },
+            { label: "Nama lengkap", name: "fullname", type: "text" },
+            { label: "Nomor telepon", name: "phone", type: "tel" },
             { label: "Email", name: "email", type: "email" },
-            { label: "Agency", name: "agency", type: "text" },
-            { label: "Department", name: "departement", type: "text" },
+            { label: "Instansi", name: "agency", type: "text" },
+            { label: "Jabatan", name: "departement", type: "text" },
           ].map(({ label, name, type }) => (
             <div key={name}>
               <Label htmlFor={name}>{label}</Label>
@@ -112,33 +112,33 @@ export default function VisitorForm() {
           ))}
 
           <div className="col-span-2">
-            <Label htmlFor="address">Address</Label>
+            <Label htmlFor="address">Alamat</Label>
             <Textarea id="address" name="address" value={formData.address} onChange={handleInputChange} placeholder="Enter your address" required />
           </div>
           <div className="col-span-2">
-            <Label htmlFor="visit_date">Visit Date</Label>
+            <Label htmlFor="visit_date">Tanggal Kunjungi</Label>
             <Input id="visit_date" name="visit_date" type="date" value={new Date().toISOString().split("T")[0]} />
           </div>
 
           {/*  visit date  now date readonly */}
 
           <div>
-            <Label htmlFor="visit_time_from">Visit Time From</Label>
+            <Label htmlFor="visit_time_from">Mulai dari</Label>
             <Input id="visit_time_from" name="visit_time_from" type="time" value={formData.visit_time_from} onChange={handleInputChange} required />
           </div>
 
           <div>
-            <Label htmlFor="visit_time_to">Visit Time To</Label>
+            <Label htmlFor="visit_time_to">Sampai dengan</Label>
             <Input id="visit_time_to" name="visit_time_to" type="time" value={formData.visit_time_to} onChange={handleInputChange} required />
           </div>
 
           <div className="col-span-2">
-            <Label htmlFor="purpose">Purpose of Visit</Label>
+            <Label htmlFor="purpose">Tujuan kunjungan</Label>
             <Textarea id="purpose" name="purpose" value={formData.purpose} onChange={handleInputChange} placeholder="Enter the purpose of your visit" required />
           </div>
 
           <div className="col-span-2">
-            <Label>Signature</Label>
+            <Label>Tanda Tangan Digital</Label>
             <ReactSignatureCanvas ref={sigCanvas} canvasProps={{ className: "border border-gray-300 rounded w-full h-40" }} />
             <Button type="button" onClick={clearSignature} variant="outline" className="mt-2">Clear Signature</Button>
           </div>
