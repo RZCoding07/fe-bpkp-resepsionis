@@ -19,7 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 type FormData = {
   scannedText: string
   employeeId: string
-  status: "approve" | "disapprove"
+  status: "approved" | "disapproved"
 }
 
 export default function QrScanner() {
@@ -35,7 +35,7 @@ export default function QrScanner() {
     defaultValues: {
       scannedText: "",
       employeeId: "",
-      status: "approve",
+      status: "approved",
     },
   })
 
@@ -226,8 +226,8 @@ export default function QrScanner() {
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="approve">Approve</SelectItem>
-                                <SelectItem value="disapprove">Disapprove</SelectItem>
+                                <SelectItem value="approved">Approve</SelectItem>
+                                <SelectItem value="disapproved">Disapprove</SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />
