@@ -39,6 +39,8 @@ const removeAllCookies = () => {
       .replace(/^ +/, '')
       .replace(/=.*/, '=;expires=' + new Date().toUTCString() + ';path=/')
   })
+
+  cookie.remove('user')
 }
 
 requireAuth().catch((error) => {
