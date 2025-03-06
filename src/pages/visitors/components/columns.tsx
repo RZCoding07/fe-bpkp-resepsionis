@@ -54,6 +54,16 @@ export const columns: ColumnDef<Visitor>[] = [
     cell: ({ row }) => <span>{row.getValue('visit_date')}</span>,
   },
   {
+    accessorKey: 'checkIn',
+    header: ({ column }) => <DataTableColumnHeader column={column} title='Check In' />,
+    cell: ({ row }) => <span>{row.getValue('checkIn')}</span>,
+  },
+  {
+    accessorKey: 'checkOut',
+    header: ({ column }) => <DataTableColumnHeader column={column} title='Check Out' />,
+    cell: ({ row }) => <span>{row.getValue('checkOut')}</span>,
+  },
+  {
     accessorKey: 'departement',
     header: ({ column }) => <DataTableColumnHeader column={column} title='Department' />,
     cell: ({ row }) => <span>{row.getValue('departement')}</span>,
